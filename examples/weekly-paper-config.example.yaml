@@ -1,0 +1,29 @@
+field_name: "materials science"
+
+research_directions:
+  - "metal alloy design"
+  - "AI for Materials"
+  - "molecular dynamics and atomistic modeling"
+  - "metal deformation mechanisms"
+  - "neutron characterization and irradiation applications"
+  - "metal additive manufacturing"
+
+target_journals:
+  - "Nature"
+  - "Science"
+  - "Physical Review Letters"
+  - "Nature Materials"
+  - "Science Advances"
+  - "Nature Communications"
+  - "Acta Materialia"
+  - "International Journal of Plasticity"
+  - "Advanced Materials"
+
+time_window: "last month"
+stage1_candidate_count: 12
+stage2_report_count: 10
+output_language: "Chinese"
+download_folder: "WeeklyPaper"
+
+report_title: "Codex每周论文速递"
+report_subtitle_template: "本期关注：{research_directions}"

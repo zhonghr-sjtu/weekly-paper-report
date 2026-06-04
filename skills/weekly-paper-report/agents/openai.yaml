@@ -1,0 +1,3 @@
+display_name: Weekly Paper Report
+short_description: Screen recent papers and generate configurable A4 weekly research digest images.
+default_prompt: 根据我的研究方向筛选本周论文 DOI，或根据 WeeklyPaper 文件夹中的 PDF 生成 Codex每周论文速递。
