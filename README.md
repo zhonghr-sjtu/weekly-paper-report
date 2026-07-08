@@ -1,9 +1,27 @@
 # Weekly Paper Report
 
-`weekly-paper-report` is a configurable Codex skill for research groups that want a two-stage weekly paper digest workflow:
+`weekly-paper-report` is a configurable Codex skill for research groups that want a staged weekly paper digest workflow:
 
 1. Screen recent high-impact papers from user-defined research directions and produce a DOI/download list.
-2. After PDFs are downloaded, generate an A4 newspaper-style weekly report image with representative figures, structured summaries, and DOI footers.
+2. After PDFs are downloaded, extract metadata and candidate representative figures for review.
+3. After figure review, generate an A4 newspaper-style draft with representative figures, structured summaries, and DOI footers.
+4. Revise text/layout if needed and finalize the weekly report.
+
+## Workflow Update
+
+This repository previously documented a simpler two-stage workflow:
+
+1. `Stage 1`: DOI screening
+2. `Stage 2`: generate the final report directly after PDFs are downloaded
+
+It has now been updated to a richer staged workflow:
+
+1. `Stage 1`: DOI screening
+2. `Stage 2`: PDF intake and figure extraction
+3. `Stage 3`: draft layout generation after figure review
+4. `Stage 4`: text revision and finalization
+
+The main change is that the old `Stage 2` has been split into the new `Stage 2` and `Stage 3`, so users can review, replace, or correct representative figures before A4 layout generation. This is especially important for weekly reports where image aspect ratios vary significantly and layout quality depends on good figure crops.
 
 The workflow is field-agnostic. It does not hard-code materials science directions. Users provide a prompt such as:
 
@@ -52,15 +70,81 @@ Codex returns a DOI/download list. Download the PDFs into a folder such as:
 WeeklyPaper/
 ```
 
-## Stage 2: Generate Report
+After screening, the expected handoff is:
+
+```text
+论文筛选已完成，请下载 DOI 清单中的论文 PDF 到 WeeklyPaper 文件夹；下载完成后告诉我，我将先提取候选代表图片供你审核。
+```
+
+## Stage 2: PDF Intake And Figure Extraction
 
 After downloading PDFs, ask:
 
 ```text
-PDFs are downloaded in WeeklyPaper. Use weekly-paper-report to generate the weekly report.
+PDFs are downloaded in WeeklyPaper. Use weekly-paper-report to run Stage 2.
 ```
 
-Codex will extract PDF metadata/text, crop representative figures, write summaries, and export an A4 PNG plus editable HTML.
+Codex will:
+
+- extract PDF metadata and text
+- detect duplicate papers when filenames differ
+- extract page renders and embedded images
+- select one candidate representative figure per paper
+- write a `figure_review.md` review note plus `crops/`, `page_renders/`, `raw_images/`, `text/`, and `text_full/` artifacts
+
+The expected handoff after Stage 2 is:
+
+```text
+代表图片已提取，请先审核 {figure_asset_folder} 中的图片；如果你修改了其中某些图片，也请直接覆盖或补充到该文件夹，确认后告诉我进入周报排版。
+```
+
+## Stage 3: Draft Layout
+
+After the user confirms the figure set, ask:
+
+```text
+Representative figures are approved in WeeklyPaper. Use weekly-paper-report to run Stage 3 and generate the draft weekly report.
+```
+
+Codex will generate:
+
+- an editable HTML draft
+- a rendered PNG draft
+- a 2 × 5 A4 layout by default for 10 papers
+
+Stage 3 also includes layout QA for:
+
+- figure bottoms crossing into the DOI band
+- white borders caused by stale aspect-ratio boxes
+- card-specific figure resizing after the user replaces crops
+
+The expected handoff after Stage 3 is:
+
+```text
+周报排版草稿已完成，请重点审查文字内容是否准确、饱满，以及机构团队表述是否合适；如需修改，请直接告诉我。
+```
+
+## Stage 4: Finalization
+
+After the user confirms the draft or gives revision feedback, ask Codex to revise and finalize the weekly report.
+
+Typical final outputs are:
+
+- `..._final.html`
+- `..._final.png`
+
+The expected final handoff is:
+
+```text
+最终版周报已完成。
+```
+
+## Practical Notes
+
+- Do not rely on filenames alone; deduplicate by DOI or exact title when necessary.
+- Track papers already used in prior weekly reports to avoid reuse when the user wants fresh coverage.
+- Track journal-tier feedback from the user; if a venue is considered below target quality, exclude similar selections in future runs unless explicitly requested.
+- When the user replaces a figure, update that card's aspect ratio instead of reusing the old figure box.
 
 ## Automation
 
