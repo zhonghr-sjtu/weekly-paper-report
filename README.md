@@ -73,7 +73,7 @@ WeeklyPaper/
 After screening, the expected handoff is:
 
 ```text
-论文筛选已完成，请下载 DOI 清单中的论文 PDF 到 WeeklyPaper 文件夹；下载完成后告诉我，我将先提取候选代表图片供你审核。
+Screening is complete. Please download the PDFs from the DOI list into the WeeklyPaper folder. After that, tell me to start representative figure extraction for review.
 ```
 
 ## Stage 2: PDF Intake And Figure Extraction
@@ -95,7 +95,7 @@ Codex will:
 The expected handoff after Stage 2 is:
 
 ```text
-代表图片已提取，请先审核 {figure_asset_folder} 中的图片；如果你修改了其中某些图片，也请直接覆盖或补充到该文件夹，确认后告诉我进入周报排版。
+Representative figures have been extracted. Please review the images in {figure_asset_folder}. If you replace or add any images, overwrite or add them in that folder, then tell me to proceed to report layout.
 ```
 
 ## Stage 3: Draft Layout
@@ -121,7 +121,7 @@ Stage 3 also includes layout QA for:
 The expected handoff after Stage 3 is:
 
 ```text
-周报排版草稿已完成，请重点审查文字内容是否准确、饱满，以及机构团队表述是否合适；如需修改，请直接告诉我。
+The weekly report draft is ready. Please review the text for accuracy, completeness, and team/institution attribution, and tell me about any revisions needed.
 ```
 
 ## Stage 4: Finalization
@@ -136,7 +136,7 @@ Typical final outputs are:
 The expected final handoff is:
 
 ```text
-最终版周报已完成。
+The final weekly report is complete.
 ```
 
 ## Practical Notes
