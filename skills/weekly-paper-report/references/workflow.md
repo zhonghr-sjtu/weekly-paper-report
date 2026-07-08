@@ -1,86 +1,97 @@
-# Weekly Research Paper Report Checklist
+# Weekly Research Paper Report Workflow Notes
 
-## Stage 1 Scope Template
+This reference captures practical implementation details validated during repeated weekly runs.
 
-Ask or infer:
+## Recommended Folder Structure
 
-```yaml
-field_name: ""
-research_directions:
-  - ""
-target_journals:
-  - ""
-time_window: "last month"
-paper_count: 10-12
-output_language: "Chinese or user language"
-download_folder: "WeeklyPaper/"
+Under the weekly working directory, prefer:
+
+- `text/` for first pages or short intake text
+- `text_full/` for full-text extraction
+- `page_renders/` for rendered PDF pages
+- `raw_images/` for images extracted with `pdfimages`
+- `crops/` for approved candidate figures
+
+Example:
+
+```text
+WeeklyPaper/
+  Week6/
+    text/
+    text_full/
+    page_renders/
+    raw_images/
+    crops/
+    figure_review.md
+    codex_weekly_paper_express_YYYY-MM-DD_weekX_draft.html
+    codex_weekly_paper_express_YYYY-MM-DD_weekX_draft.png
+    codex_weekly_paper_express_YYYY-MM-DD_weekX_final.html
+    codex_weekly_paper_express_YYYY-MM-DD_weekX_final.png
 ```
 
-## Stage 1 DOI List Template
+## Useful Commands
 
-| Direction | Paper | Venue | DOI / URL | Why selected |
-|---|---|---|---|---|
-| Direction A | Title | Journal | https://doi.org/... | ... |
-
-Return 10-12 papers by default. Mark papers outside the default time window as "time window broadened".
-
-## Stage 2 File Workflow
-
-Expected project folder:
-`WeeklyPaper/`
-
-Useful commands:
-
-- `find WeeklyPaper -maxdepth 2 -type f | sort`
 - `pdfinfo file.pdf`
-- `pdftotext -layout file.pdf out.txt`
-- `pdftoppm -png -r 100 -f 1 -l 12 file.pdf render/page`
+- `pdftotext -layout -f 1 -l 4 file.pdf out.txt`
+- `pdftotext -layout file.pdf out_full.txt`
+- `pdftoppm -png -r 120 -f 1 -l 8 file.pdf render/page`
+- `pdfimages -all file.pdf raw/img`
+- `sips -g pixelWidth -g pixelHeight image.png`
 
-Recommended generated folders:
+## DOI And PDF Intake Rules
 
-- `WeeklyPaper/text/`
-- `WeeklyPaper/text_full/`
-- `WeeklyPaper/page_renders/`
-- `WeeklyPaper/final_assets/`
+- Do not trust filenames alone.
+- Deduplicate by DOI or by exact title when the same paper appears under multiple filenames.
+- Record user exclusions explicitly, especially:
+  - papers already used in prior weekly reports
+  - journals the user considers below target tier
+- When restoring the final paper count, prefer a replacement paper that:
+  - fits the missing direction
+  - has not appeared in prior weeks
+  - is likely to yield a clean representative figure
 
-## Summary Style
+## Figure Selection Heuristics
 
-Chinese:
+Prefer:
 
-`（一句话概括研究背景），关键科学问题是（...）。近日，（机构）的（第一通讯作者）团队通过（方法/技术），针对（问题）开展研究，主要结论如下：（1）...；（2）...；（3）...。`
-
-English:
-
-`Background sentence. The key scientific question is ... Recently, the team led by ... at ... used ... to investigate ... Main conclusions: (1) ...; (2) ...; (3) ... .`
-
-Prefer actual Conclusions/Discussion statements. If the paper lacks a Conclusions section, synthesize from abstract, final Discussion paragraphs, and major figure captions.
-
-## Figure Selection
-
-Good figure types:
-
-- graphical abstract
-- overview schematic
-- main result figure
-- representative microscopy/visualization
-- workflow/model architecture
-- performance map/curve
-- field-specific key evidence figure
+- graphical abstracts
+- overview schematics
+- workflow/model architecture figures
+- phase/property maps
+- representative microscopy or diffraction figures
+- main result figures with a clear story
 
 Avoid:
 
-- pure text pages
-- incomplete panels
-- page headers
-- figure captions in final crop
-- tiny unreadable multi-panel images unless they communicate the paper's story
+- pages dominated by text
+- figures whose captions are inseparable from the crop
+- images with excessive blank margins
+- tiny dense multipanel figures when a cleaner panel exists
 
-## Final Deliverables
+## Layout QA Checklist
 
-Return:
+When generating the A4 draft, check:
 
-- rendered PNG link
-- editable HTML link
-- asset folder link
+1. Does any figure bottom cross into the DOI band?
+2. Was a crop replaced by the user with a new aspect ratio that no longer matches the old figure container?
+3. Does any figure show white borders because the old aspect ratio was reused?
+4. After enlarging text, do any figures need to shrink locally?
+5. Is the DOI line readable and fully separated from the figure above it?
 
-Mention excluded papers only if useful.
+Preferred fix order:
+
+1. Adjust the affected card's figure width or aspect ratio.
+2. Re-render and inspect only the changed cards first.
+3. Apply global resizing only if many cards fail simultaneously.
+
+## Figure Review File
+
+Before Stage 3, create a short `figure_review.md` that includes:
+
+- current unique paper count
+- duplicate or excluded papers
+- one candidate image filename per paper
+- journal and DOI
+- asset folder locations
+
+This makes user review faster and helps preserve state between runs.
