@@ -1,6 +1,6 @@
 ---
 name: weekly-paper-report
-description: Use this skill to run a configurable weekly research-paper digest workflow for any academic field. It first screens recent high-impact papers and produces a DOI/download list based on the user's prompt, research directions, target journals, time window, and language preferences; then, after the user downloads PDFs, it generates an A4 newspaper-style report image with representative figures, structured summaries, and DOI footers. Trigger for requests about 每周论文速递, 论文周报, DOI筛选, paper digest, literature weekly report, WeeklyPaper, or automated paper screening.
+description: Use this skill to run a configurable weekly research-paper digest workflow for any academic field. It first screens recent high-impact papers and produces a DOI/download list; then, after the user downloads PDFs, it extracts representative figures for user review, incorporates image feedback, generates an A4 newspaper-style draft with structured summaries and DOI footers, and only outputs the final version after the user approves the text. Trigger for requests about 每周论文速递, 论文周报, DOI筛选, paper digest, literature weekly report, WeeklyPaper, or automated paper screening.
 metadata:
   short-description: Configurable DOI screening, figure review, and A4 research paper weekly report
 ---
@@ -8,21 +8,6 @@ metadata:
 # Weekly Paper Report
 
 This skill supports a gated multi-stage paper digest workflow for any research group or academic field.
-
-## Workflow Update
-
-This skill was upgraded from an older two-stage workflow to a richer staged workflow validated in repeated weekly materials-science runs.
-
-- Old workflow:
-  - `Stage 1`: DOI screening
-  - `Stage 2`: directly generate the A4 report after PDFs are downloaded
-- Updated workflow:
-  - `Stage 1`: DOI screening
-  - `Stage 2`: PDF intake and representative figure extraction
-  - `Stage 3`: A4 draft layout generation after figure review
-  - `Stage 4`: text revision and finalization
-
-The key change is that the old `Stage 2` was split into a new `Stage 2` and `Stage 3`, so figure quality can be reviewed before report layout. This is more robust for weekly paper digests that depend on heterogeneous figure aspect ratios, user-replaced crops, and dense A4 layouts.
 
 ## Core Principle
 
@@ -62,19 +47,27 @@ For niche fields, use high-quality specialty journals and conferences when they 
 When the user asks to start screening or an automation runs:
 
 1. Parse the user's scope and produce a short internal search plan.
-2. Search broadly across publisher pages, DOI pages, Crossref/PubMed/arXiv when applicable, Google Scholar-style web results, and society/conference pages.
-3. Select 10-12 candidate papers unless the user requests another number.
-4. Balance across `research_directions`; aim for 1-2 papers per direction.
-5. Prefer papers that are recent, high-impact, on-topic, and likely to contain clear representative figures.
-6. Return a concise DOI download list with:
+2. Before searching, check whether the project already has a historical coverage workbook, preferably `outputs/weekly_paper_history/weekly_paper_covered_papers.xlsx`.
+3. If the workbook exists, read at least the DOI index and weekly-entry sheets, then build an exclusion set from previously covered DOI, DOI URL, and official titles.
+4. During screening, treat candidates that match the workbook by DOI or clearly equivalent title as already covered, and replace them with new papers unless the user explicitly asks to repeat a paper.
+5. Search broadly across publisher pages, DOI pages, Crossref/PubMed/arXiv when applicable, Google Scholar-style web results, and society/conference pages.
+6. Select 10-12 candidate papers unless the user requests another number.
+7. Balance across `research_directions`; aim for 1-2 papers per direction.
+8. Prefer papers that are recent, high-impact, on-topic, and likely to contain clear representative figures.
+9. Return a concise DOI download list with:
    - direction/category
    - paper title
    - journal/conference
    - DOI URL or stable URL
    - one-line reason for selection
-7. Ask the user to download PDFs into `download_folder`, then notify Codex to start Stage 2.
+10. If the time window must be broadened to maintain quality coverage, mark those entries clearly.
+11. Ask the user to download PDFs into `download_folder`, then notify Codex to start Stage 2.
 
 Do not generate the report in Stage 1 unless PDFs are already present and the user asks for Stage 2.
+
+Required handoff text after Stage 1:
+
+`论文筛选已完成，请下载 DOI 清单中的论文 PDF 到 {download_folder} 文件夹；下载完成后告诉我，我将先提取候选代表图片供你审核。`
 
 ## Stage 2: PDF Intake And Figure Extraction
 
@@ -84,19 +77,16 @@ When the user says PDFs are downloaded:
 2. Extract metadata and text using local tools such as `pdfinfo`, `pdftotext`, `pdftoppm`, and the bundled Python runtime.
 3. Confirm title, DOI, source, authors, institution, and corresponding author where possible.
 4. Choose the final papers, preserving direction balance and figure quality.
-5. Detect duplicate PDFs when a folder contains multiple filenames for the same paper. Prefer DOI/title deduplication over filename-based assumptions.
-6. Respect user exclusions from prior weeks or journal-quality feedback. If a paper was previously used in a weekly report, or the user explicitly rejects a journal tier, exclude it from the final set and record the preference for future runs.
-7. Render PDF pages and extract representative figures:
+5. Render PDF pages and extract representative figures:
    - Prefer graphical abstract, Fig. 1, overview schematic, key experimental/analysis figure, or main result figure.
    - Avoid cropped text blocks, figure captions, page headers, or incomplete panels.
    - Prefer complete figures first; if a full figure is too dense, extract the dominant panel or a clean subset of panels.
    - Preserve original image aspect ratio as much as possible; do not stretch images to fit a generic box.
-8. Save figure assets into dedicated folders under `download_folder`, for example:
-   - `crops/` for candidate figures intended for layout
+6. Save extracted figure assets into a dedicated folder under `download_folder`, for example:
+   - `crops/` for manually usable figure screenshots
    - `page_renders/` for page-level renders
-   - `raw_images/` for embedded images extracted from the PDF
-   - `text/` and `text_full/` for intake text
-9. Return the figure asset folder path and ask the user to review or replace images before layout generation.
+   - `text/` or `text_full/` for extracted text if needed
+7. Return the figure asset folder path and ask the user to review the images before report generation.
 
 Required handoff text after Stage 2:
 
@@ -117,13 +107,7 @@ After the user confirms the figure set, or updates the extracted images:
    - portrait images should keep portrait boxes
    - square images should stay near square
    - use `object-fit: contain` unless the user explicitly prefers tighter cropping
-6. During draft layout QA, check for these recurrent failure modes:
-   - image bottoms crossing into the DOI band
-   - stale figure-box aspect ratios after the user replaces a crop
-   - excessive white margins caused by reusing an old figure container ratio for a new image
-   - figure size being too large for enlarged text blocks
-7. If layout issues appear, first resize or re-ratio the affected figure block instead of globally shrinking all cards.
-8. Notify the user that the draft is ready for text review.
+6. Notify the user that the draft is ready for text review.
 
 Required handoff text after Stage 3:
 
@@ -131,13 +115,12 @@ Required handoff text after Stage 3:
 
 ## Stage 4: Text Revision And Finalization
 
-When the user gives text or layout feedback:
+When the user gives text feedback:
 
 1. Revise summaries, title lines, institution/team attribution, conclusions, and issue labels as requested.
 2. If the text revision changes layout pressure, rebalance figure size and text density without breaking approved image proportions.
-3. If the user replaces one specific crop, update only that figure block's aspect ratio and dimensions unless broader changes are needed.
-4. Re-render the draft and repeat review if needed.
-5. Only treat the report as final when the user explicitly approves the text and layout or clearly indicates no further changes are needed.
+3. Re-render the draft and repeat text review if needed.
+4. Only treat the report as final when the user explicitly approves the text or clearly indicates no further changes are needed.
 
 Required handoff text after final approval:
 
@@ -158,16 +141,14 @@ Prefer actual Conclusions/Discussion statements. If the paper lacks a Conclusion
 ## Default Layout Rules
 
 - A4 portrait, default 1240 x 1754 px.
-- Ten blocks in a 2 x 5 grid unless the user requests another layout.
+- Ten blocks in a 2 x 5 grid unless the user requests another layout; 8-paper 2 x 4 layouts are acceptable when figure quality or readability requires curation.
 - Each block order: source/category line, title as an independent line, then figure plus summary text.
 - Use image + text wrapping under the title when it improves density.
 - Increase summary font size when readable space remains; keep DOI visible inside the block.
 - Keep the top title visually separated from the top rule.
 - No draft/process notes in the final report image.
-- Do not force one fixed figure size across all papers when approved images have different aspect ratios.
-- Protect the DOI band: figure bottoms must remain above the DOI footer after every layout revision.
-- If the user enlarges text or requests denser summaries, shrink affected figure boxes before reducing global readability.
-- When a new crop replaces an earlier one, update the corresponding figure-box aspect ratio to match the new image and avoid white borders.
+- Do not force one fixed figure size across all papers when approved images have very different aspect ratios.
+- If the user manually replaces some extracted images, prefer adapting the layout to the revised images rather than recropping them again.
 
 Default Chinese title:
 `Codex每周论文速递`
