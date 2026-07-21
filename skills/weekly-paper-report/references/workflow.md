@@ -1,97 +1,136 @@
-# Weekly Research Paper Report Workflow Notes
+# Weekly Research Paper Report Checklist
 
-This reference captures practical implementation details validated during repeated weekly runs.
+## Stage 1 Scope Template
 
-## Recommended Folder Structure
+Ask or infer:
 
-Under the weekly working directory, prefer:
-
-- `text/` for first pages or short intake text
-- `text_full/` for full-text extraction
-- `page_renders/` for rendered PDF pages
-- `raw_images/` for images extracted with `pdfimages`
-- `crops/` for approved candidate figures
-
-Example:
-
-```text
-WeeklyPaper/
-  Week6/
-    text/
-    text_full/
-    page_renders/
-    raw_images/
-    crops/
-    figure_review.md
-    codex_weekly_paper_express_YYYY-MM-DD_weekX_draft.html
-    codex_weekly_paper_express_YYYY-MM-DD_weekX_draft.png
-    codex_weekly_paper_express_YYYY-MM-DD_weekX_final.html
-    codex_weekly_paper_express_YYYY-MM-DD_weekX_final.png
+```yaml
+field_name: ""
+research_directions:
+  - ""
+target_journals:
+  - ""
+time_window: "last month"
+paper_count: 10-12
+output_language: "Chinese or user language"
+download_folder: "WeeklyPaper/"
 ```
 
-## Useful Commands
+## Stage 1 DOI List Template
 
+| Direction | Paper | Venue | DOI / URL | Why selected |
+|---|---|---|---|---|
+| Direction A | Title | Journal | https://doi.org/... | ... |
+
+Return 10-12 papers by default. Mark papers outside the default time window as "time window broadened".
+
+Before finalizing the Stage 1 list, check whether a historical workbook already exists in the project, preferably:
+
+`outputs/weekly_paper_history/weekly_paper_covered_papers.xlsx`
+
+If it exists:
+
+- read the DOI/title history before selecting final candidates
+- exclude papers already covered in previous weekly reports by DOI, DOI URL, or clearly equivalent title
+- only keep a repeated paper when the user explicitly asks for a revisit
+
+## Stage 2 File Workflow
+
+Expected project folder:
+`WeeklyPaper/`
+
+Useful commands:
+
+- `find WeeklyPaper -maxdepth 2 -type f | sort`
 - `pdfinfo file.pdf`
-- `pdftotext -layout -f 1 -l 4 file.pdf out.txt`
-- `pdftotext -layout file.pdf out_full.txt`
-- `pdftoppm -png -r 120 -f 1 -l 8 file.pdf render/page`
-- `pdfimages -all file.pdf raw/img`
-- `sips -g pixelWidth -g pixelHeight image.png`
+- `pdftotext -layout file.pdf out.txt`
+- `pdftoppm -png -r 100 -f 1 -l 12 file.pdf render/page`
 
-## DOI And PDF Intake Rules
+Recommended generated folders:
 
-- Do not trust filenames alone.
-- Deduplicate by DOI or by exact title when the same paper appears under multiple filenames.
-- Record user exclusions explicitly, especially:
-  - papers already used in prior weekly reports
-  - journals the user considers below target tier
-- When restoring the final paper count, prefer a replacement paper that:
-  - fits the missing direction
-  - has not appeared in prior weeks
-  - is likely to yield a clean representative figure
+- `WeeklyPaper/text/`
+- `WeeklyPaper/text_full/`
+- `WeeklyPaper/page_renders/`
+- `WeeklyPaper/crops/`
+- `WeeklyPaper/final_assets/`
 
-## Figure Selection Heuristics
+## Stage 2 Figure Review Handoff
 
-Prefer:
+After extracting candidate figures, stop and ask the user to review the figure folder before report generation.
 
-- graphical abstracts
-- overview schematics
-- workflow/model architecture figures
-- phase/property maps
-- representative microscopy or diffraction figures
-- main result figures with a clear story
+Recommended wording:
+
+`代表图片已提取，请先审核 {figure_asset_folder} 中的图片；如果你修改了其中某些图片，也请直接覆盖或补充到该文件夹，确认后告诉我进入周报排版。`
+
+Do not skip this checkpoint in the default workflow.
+
+## Stage 3 Draft Layout
+
+Once the user approves or updates the figure assets:
+
+- re-read the actual image files from the figure folder
+- preserve image aspect ratio as much as possible
+- allow per-paper figure box sizing instead of forcing one shared image size
+- generate editable HTML and rendered PNG
+- ask the user to review the text before declaring the report final
+
+Recommended wording:
+
+`周报排版草稿已完成，请重点审查文字内容是否准确、饱满，以及机构团队表述是否合适；如需修改，请直接告诉我。`
+
+## Stage 4 Final Approval
+
+Only output the final version after the user approves the text.
+
+After the final version is explicitly approved:
+
+- update the historical workbook if it exists, preferably `outputs/weekly_paper_history/weekly_paper_covered_papers.xlsx`
+- write this issue's final paper list into the workbook, including at least week label, report date, category, Chinese digest title, DOI, DOI URL, official title, journal, and final source file
+- replace any temporary Stage 2 or draft-status records for the same issue with the final approved record rather than duplicating them
+
+Recommended wording:
+
+`最终版周报已完成。`
+
+## Summary Style
+
+Chinese:
+
+`（一句话概括研究背景），关键科学问题是（...）。近日，（机构）的（第一通讯作者）团队通过（方法/技术），针对（问题）开展研究，主要结论如下：（1）...；（2）...；（3）...。`
+
+English:
+
+`Background sentence. The key scientific question is ... Recently, the team led by ... at ... used ... to investigate ... Main conclusions: (1) ...; (2) ...; (3) ... .`
+
+Prefer actual Conclusions/Discussion statements. If the paper lacks a Conclusions section, synthesize from abstract, final Discussion paragraphs, and major figure captions.
+
+## Figure Selection
+
+Good figure types:
+
+- graphical abstract
+- overview schematic
+- main result figure
+- representative microscopy/visualization
+- workflow/model architecture
+- performance map/curve
+- field-specific key evidence figure
 
 Avoid:
 
-- pages dominated by text
-- figures whose captions are inseparable from the crop
-- images with excessive blank margins
-- tiny dense multipanel figures when a cleaner panel exists
+- pure text pages
+- incomplete panels
+- page headers
+- figure captions in final crop
+- tiny unreadable multi-panel images unless they communicate the paper's story
+- fixed-size stretching that distorts the approved image
 
-## Layout QA Checklist
+## Final Deliverables
 
-When generating the A4 draft, check:
+Return:
 
-1. Does any figure bottom cross into the DOI band?
-2. Was a crop replaced by the user with a new aspect ratio that no longer matches the old figure container?
-3. Does any figure show white borders because the old aspect ratio was reused?
-4. After enlarging text, do any figures need to shrink locally?
-5. Is the DOI line readable and fully separated from the figure above it?
+- rendered PNG link
+- editable HTML link
+- asset folder link
 
-Preferred fix order:
-
-1. Adjust the affected card's figure width or aspect ratio.
-2. Re-render and inspect only the changed cards first.
-3. Apply global resizing only if many cards fail simultaneously.
-
-## Figure Review File
-
-Before Stage 3, create a short `figure_review.md` that includes:
-
-- current unique paper count
-- duplicate or excluded papers
-- one candidate image filename per paper
-- journal and DOI
-- asset folder locations
-
-This makes user review faster and helps preserve state between runs.
+Mention excluded papers only if useful.
